@@ -1,2 +1,280 @@
 # Waikiki
-My Website
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise HTML5 Stress Test</title>
+
+<style>
+:root {
+  --bg: #ffffff;
+  --text: #000000;
+}
+body.dark {
+  --bg: #121212;
+  --text: #ffffff;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  transition: 0.3s;
+}
+section {
+  margin-bottom: 40px;
+  padding: 20px;
+  border: 1px solid #ccc;
+}
+button {
+  padding: 8px 12px;
+  margin: 5px 0;
+}
+canvas {
+  border: 1px solid black;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+  gap: 10px;
+}
+.card {
+  background: #4CAF50;
+  color: white;
+  padding: 20px;
+}
+</style>
+</head>
+<body>
+
+<h1>Enterprise HTML5 Feature Test</h1>
+<button onclick="toggleDark()">Toggle Dark Mode</button>
+
+<section>
+<h2>Advanced Form Validation</h2>
+<form id="advancedForm">
+<input type="text" placeholder="Username" required minlength="3"><br><br>
+<input type="email" placeholder="Email" required><br><br>
+<input type="password" placeholder="Password" required pattern=".{6,}"><br><br>
+<input type="file" id="fileInput"><br><br>
+<button type="submit">Submit</button>
+</form>
+<p id="fileInfo"></p>
+</section>
+
+<section>
+<h2>Canvas Animation</h2>
+<canvas id="canvas" width="400" height="150"></canvas>
+</section>
+
+<section>
+<h2>SVG Animation</h2>
+<svg width="200" height="100">
+<circle id="circle" cx="50" cy="50" r="20" fill="red">
+<animate attributeName="cx" from="50" to="150" dur="2s" repeatCount="indefinite" />
+</circle>
+</svg>
+</section>
+
+<section>
+<h2>Web Worker (Background Task)</h2>
+<button onclick="startWorker()">Start Worker</button>
+<p id="workerOutput"></p>
+</section>
+
+<section>
+<h2>IndexedDB Test</h2>
+<button onclick="saveToDB()">Save Data</button>
+<button onclick="readFromDB()">Read Data</button>
+<p id="dbOutput"></p>
+</section>
+
+<section>
+<h2>Geolocation</h2>
+<button onclick="getLocation()">Get Location</button>
+<p id="location"></p>
+</section>
+
+<section>
+<h2>Notifications API</h2>
+<button onclick="notifyUser()">Send Notification</button>
+</section>
+
+<section>
+<h2>Fullscreen API</h2>
+<button onclick="goFullscreen()">Go Fullscreen</button>
+</section>
+
+<section>
+<h2>Intersection Observer</h2>
+<div id="observeBox" style="height:100px;background:orange;">Scroll to observe me</div>
+</section>
+
+<section>
+<h2>Custom Web Component</h2>
+<my-card></my-card>
+</section>
+
+<section>
+<h2>Fetch API</h2>
+<button onclick="fetchData()">Fetch Sample Data</button>
+<pre id="fetchOutput"></pre>
+</section>
+
+<section>
+<h2>Performance API</h2>
+<button onclick="measurePerformance()">Measure</button>
+<p id="performanceOutput"></p>
+</section>
+
+<section>
+<h2>Network Status</h2>
+<p id="networkStatus"></p>
+</section>
+
+<script>
+// Dark mode
+function toggleDark() {
+  document.body.classList.toggle("dark");
+}
+
+// File API
+document.getElementById("fileInput").addEventListener("change", function(e){
+  const file = e.target.files[0];
+  if(file) {
+    document.getElementById("fileInfo").innerText =
+      "File: " + file.name + " | Size: " + file.size + " bytes";
+  }
+});
+
+// Canvas animation
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+let x = 0;
+function animate() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = "blue";
+  ctx.fillRect(x, 50, 50, 50);
+  x += 2;
+  if(x > canvas.width) x = 0;
+  requestAnimationFrame(animate);
+}
+animate();
+
+// Web Worker
+let worker;
+function startWorker(){
+  const blob = new Blob([`
+    let count = 0;
+    setInterval(() => {
+      postMessage(count++);
+    }, 1000);
+  `], { type: "application/javascript" });
+  worker = new Worker(URL.createObjectURL(blob));
+  worker.onmessage = e => {
+    document.getElementById("workerOutput").innerText =
+      "Worker Count: " + e.data;
+  };
+}
+
+// IndexedDB
+let db;
+const request = indexedDB.open("TestDB", 1);
+request.onupgradeneeded = e => {
+  db = e.target.result;
+  db.createObjectStore("store");
+};
+request.onsuccess = e => db = e.target.result;
+
+function saveToDB(){
+  const tx = db.transaction("store", "readwrite");
+  tx.objectStore("store").put("Hello IndexedDB", "key1");
+}
+function readFromDB(){
+  const tx = db.transaction("store", "readonly");
+  const req = tx.objectStore("store").get("key1");
+  req.onsuccess = () => {
+    document.getElementById("dbOutput").innerText = req.result;
+  };
+}
+
+// Geolocation
+function getLocation(){
+  navigator.geolocation.getCurrentPosition(pos => {
+    document.getElementById("location").innerText =
+      "Lat: " + pos.coords.latitude + 
+      " | Lon: " + pos.coords.longitude;
+  });
+}
+
+// Notifications
+function notifyUser(){
+  Notification.requestPermission().then(permission => {
+    if(permission === "granted"){
+      new Notification("Hello from HTML5!");
+    }
+  });
+}
+
+// Fullscreen
+function goFullscreen(){
+  document.documentElement.requestFullscreen();
+}
+
+// Intersection Observer
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){
+      entry.target.style.background = "green";
+    }
+  });
+});
+observer.observe(document.getElementById("observeBox"));
+
+// Custom Element
+class MyCard extends HTMLElement {
+  constructor(){
+    super();
+    const shadow = this.attachShadow({mode: "open"});
+    shadow.innerHTML = `
+      <style>
+        div { padding:20px;background:#2196F3;color:white;}
+      </style>
+      <div>Shadow DOM Custom Component</div>
+    `;
+  }
+}
+customElements.define("my-card", MyCard);
+
+// Fetch API
+function fetchData(){
+  fetch("https://jsonplaceholder.typicode.com/todos/1")
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("fetchOutput").innerText =
+        JSON.stringify(data, null, 2);
+    });
+}
+
+// Performance API
+function measurePerformance(){
+  const start = performance.now();
+  for(let i=0;i<1000000;i++){}
+  const end = performance.now();
+  document.getElementById("performanceOutput").innerText =
+    "Execution time: " + (end-start).toFixed(2) + " ms";
+}
+
+// Network Status
+function updateNetwork(){
+  document.getElementById("networkStatus").innerText =
+    navigator.onLine ? "Online" : "Offline";
+}
+window.addEventListener("online", updateNetwork);
+window.addEventListener("offline", updateNetwork);
+updateNetwork();
+</script>
+
+</body>
+</html>
